@@ -13,7 +13,6 @@ function main()
 	);
 	var ball = new Ball();
 		ball.x = -200;
-		ball.path = path;
 
 	container.path = path;
 	container.ball = ball;
@@ -38,7 +37,6 @@ function mousedown( event )
 		m = m.scale(2);
 
 	container.ball.applyForce(m);
-	console.log("hey")
 }
 
 function update( event )
@@ -46,9 +44,10 @@ function update( event )
 	// redraw path to mouse
 	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
 	container.path.end = m;
-	// update ball
+	// seek
 	// container.ball.seek( m );
-	//container.ball.seekToPath( container.path );
+	container.ball.seekToPath( container.path );
+	// update ball
 	container.ball.update();
 }
 
@@ -60,43 +59,48 @@ function update( event )
 		var shape = new createjs.Shape();
 			shape.graphics.f( color ).dc(0,0,size).ef();
 		
-		this.velocity = new createjs.Point(1,0);
+		this.velocity = new createjs.Point(0,0);
 		this.acceleration = new createjs.Point();
 
-		this.friction = .01;
+		this.friction = 0;//.01;
 		this.mass = .1;
-		this.lookAhead = 10;
+		this.lookAhead = 250;
 		this.maxSpeed = 2;
 
 		this.addChild( shape );
     }
 
 	var p = createjs.extend( Ball, createjs.Container );
+		p.getNormalPoint = function( p, a, b )
+		{
+			var ap = p.subtract( a );
+			var ab = b.subtract( a );
+
+			ab.normalize(1);
+			ab = ab.scale( createjs.Point.dot(ap,ab) );
+
+			var normalPoint = a.add(ab);
+			return normalPoint;
+		}
 		p.seekToPath = function( path )
 		{
-			var c = this.velocity.clone();
-				c.normalize(1);
-				c = c.scale( this.lookAhead );
+			var predict = this.velocity.clone();
+				predict.normalize(1);
+				predict = predict.scale( this.lookAhead );
 
-			var predict = this.getPosition().add( c );
+			var predictPosition = this.getPosition().add( predict );
+			var normalPoint = this.getNormalPoint( predictPosition, path.start, path.end );
+			var direction = path.end.subtract( path.start );
+				direction.normalize(1);
+				direction = direction.scale(this.lookAhead * .5 );
 
-			var a = predict.subtract( path.start );
-			var b = path.end.subtract( path.start );
+			var target = normalPoint.add( direction );
 
-			// scale b to our theta
-			b.normalize(1);
-			b = b.scale( createjs.Point.dot(a, b) );
+			var distance = createjs.Point.distance( normalPoint, predictPosition );
 
-			var normalPoint = path.start.clone().add(b);
-			var distance = createjs.Point.distance( predict, normalPoint );
-
-			if(distance >= path.radius)
+			if(distance > path.radius)
 			{
-				b.normalize(1);
-				b = b.scale( this.lookAhead );
-				var target = normalPoint.add( b );
-
-				// this.seek( target );
+				this.seek( target );
 			}			
 		}
 		p.update = function()
