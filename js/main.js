@@ -32,11 +32,12 @@ function keyPressed( event )
 
 function mousedown( event )
 {
-	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
-		m.normalize(1);
-		m = m.scale(2);
+	// var m = container.globalToLocal( stage.mouseX, stage.mouseY );
+	// 	m.normalize(1);
+	// 	m = m.scale(2);
 
-	container.ball.applyForce(m);
+	// container.ball.applyForce(m);
+	container.ball.x = container.ball.y = 0;
 }
 
 function update( event )
@@ -64,7 +65,7 @@ function update( event )
 
 		this.friction = 0;//.01;
 		this.mass = .1;
-		this.lookAhead = 250;
+		this.lookAhead = 25;
 		this.maxSpeed = 2;
 
 		this.addChild( shape );
