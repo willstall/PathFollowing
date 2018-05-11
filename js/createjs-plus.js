@@ -118,6 +118,11 @@ createjs.Point.prototype.degreesTo = function(v){
 	var angle = Math.atan2(dy, dx); // radians
 	return angle * (180 / Math.PI); // degrees
 };
+createjs.Point.prototype.heading = function()
+{
+	var angle = Math.atan2( this.y, this.x );
+	return angle * ( 180 / Math.PI );
+};
 createjs.Point.prototype.distance = function(v){
 	var x = this.x - v.x;
 	var y = this.y - v.y;

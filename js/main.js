@@ -53,12 +53,12 @@ function update( event )
 }
 
 (function() {
-    function Ball( size = 10, color = "#FF0000")
+    function Ball( size = 30, color = "#FF0000")
     {
     	this.Container_constructor();
 	
 		var shape = new createjs.Shape();
-			shape.graphics.f( color ).dc(0,0,size).ef();
+			shape.graphics.f( color ).dr(size *-.5,size*-.25,size,size*.5).ef();
 		
 		this.velocity = new createjs.Point(0,0);
 		this.acceleration = new createjs.Point();
@@ -114,6 +114,8 @@ function update( event )
 			// apply velocity
 			this.x += this.velocity.x;
 			this.y += this.velocity.y;
+			// rotate
+			this.rotation = createjs.Math.lerp(this.rotation,this.velocity.heading(), .1 );
 		}
 		p.seek = function( position )
 		{
