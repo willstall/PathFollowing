@@ -19,6 +19,7 @@ function main()
 	container.ball = ball;
 	container.addChild( path, ball );
 	container.on("tick", update ).bind(this);
+	stage.on("stagemousedown", mousedown).bind(this);
 }
 
 function keyPressed( event )
@@ -30,13 +31,24 @@ function keyPressed( event )
 	}
 }
 
+function mousedown( event )
+{
+	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
+		m.normalize(1);
+		m = m.scale(2);
+
+	container.ball.applyForce(m);
+	console.log("hey")
+}
+
 function update( event )
 {
 	// redraw path to mouse
 	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
 	container.path.end = m;
 	// update ball
-	container.ball.seek( m );
+	// container.ball.seek( m );
+	//container.ball.seekToPath( container.path );
 	container.ball.update();
 }
 
@@ -51,7 +63,7 @@ function update( event )
 		this.velocity = new createjs.Point(1,0);
 		this.acceleration = new createjs.Point();
 
-		this.friction = 1;
+		this.friction = .01;
 		this.mass = .1;
 		this.lookAhead = 10;
 		this.maxSpeed = 2;
@@ -60,7 +72,7 @@ function update( event )
     }
 
 	var p = createjs.extend( Ball, createjs.Container );
-		p.update = function()
+		p.seekToPath = function( path )
 		{
 			var c = this.velocity.clone();
 				c.normalize(1);
@@ -68,27 +80,29 @@ function update( event )
 
 			var predict = this.getPosition().add( c );
 
-			var a = predict.subtract( this.path.start );
-			var b = this.path.end.subtract( this.path.start );
+			var a = predict.subtract( path.start );
+			var b = path.end.subtract( path.start );
 
 			// scale b to our theta
 			b.normalize(1);
 			b = b.scale( createjs.Point.dot(a, b) );
 
-			var normalPoint = this.path.start.clone().add(b);
+			var normalPoint = path.start.clone().add(b);
 			var distance = createjs.Point.distance( predict, normalPoint );
 
-			if(distance >= this.path.radius)
+			if(distance >= path.radius)
 			{
 				b.normalize(1);
 				b = b.scale( this.lookAhead );
 				var target = normalPoint.add( b );
 
 				// this.seek( target );
-			}
-
+			}			
+		}
+		p.update = function()
+		{
 			// add friction
-			// this.applyFriction();
+			this.applyFriction();
 			// add acceleration
 			this.velocity = this.velocity.add( this.acceleration );
 			this.acceleration = new createjs.Point();
