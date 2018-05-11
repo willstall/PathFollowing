@@ -36,6 +36,7 @@ function update( event )
 	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
 	container.path.end = m;
 	// update ball
+	container.ball.seek( m );
 	container.ball.update();
 }
 
@@ -83,7 +84,7 @@ function update( event )
 				b = b.scale( this.lookAhead );
 				var target = normalPoint.add( b );
 
-				this.seek( target );
+				// this.seek( target );
 			}
 
 			// add friction
