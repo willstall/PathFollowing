@@ -14,13 +14,13 @@ createjs.Text.prototype.log = function()
 // STAGE EXTENSIONS
 
 // MOVEMENT EXTENSIONS
-createjs.DisplayObject.prototype.GetPosition = function( )
+createjs.DisplayObject.prototype.getPosition = function( )
 {
     return new createjs.Point( this.x, this.y );
 }
-createjs.DisplayObject.prototype.DegreesToTarget = function( target )
+createjs.DisplayObject.prototype.degreesToTarget = function( target )
 {
-    var degrees = this.GetPosition().degreesTo( target.GetPosition() );
+    var degrees = this.getPosition().degreesTo( target.getPosition() );
     if( degrees < 0 )
         degrees += 360;
 
@@ -154,6 +154,10 @@ createjs.Point.prototype.scale = function(s)
 {
 	return new createjs.Point( this.x * s, this.y * s );
 }
+createjs.Point.prototype.divide = function(s)
+{
+	return new createjs.Point( this.x / s, this.y / s );
+}
 createjs.Point.prototype.subtract = function(v){
 	return new createjs.Point(this.x - v.x, this.y - v.y);
 };
@@ -182,6 +186,14 @@ createjs.Point.dot = function( pt1, pt2 )
 {
 	return pt1.x*pt2.x + pt1.y*pt2.y;
 }
+
+/*
+ static public float angleBetween(PVector v1, PVector v2) {
+    float dot = v1.dot(v2);
+    float theta = (float) Math.acos(dot / (v1.mag() * v2.mag()));
+    return theta;
+  }
+*/
 
 // MATH EXTENSIONS
 createjs.Math = {};
