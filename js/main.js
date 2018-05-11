@@ -5,48 +5,13 @@ function main()
 
 	// Keyboard
 	document.onkeydown = keyPressed;
-
-	// Components
-//	var spinComponent = new SpinComponent();
-//		spinComponent.targetRotation = 3600;
-//		spinComponent.ease = 0.01;
-
-	var positionComponent = new OscillatePositionComponent();
-		positionComponent.amplitude.y = 50;
-	var lookAtComponent = new LookAtComponent();
-	var rotateComponent = new RotateComponent( .5 );
-//		rotateComponent.increment = 0.5
-
-	// Display 
-	var test1 = new createjs.Shape();
-		test1.graphics.beginFill("DeepSkyBlue").rect(-25,-25,50,50);
-		test1.rotation = 45;
-		test1.x = 60;
-		test1.AddComponent( new OscillateScaleComponent(20, new createjs.Point(1,0) ) );
-		test1.AddComponent( new SpinComponent(0.01,3600) );
-		test1.SetComponentsUpdate( true );
 	
-	var test2 = new createjs.Shape();
-		test2.graphics.beginFill("Red").drawCircle(0, 0, 10);
-		test2.AddComponent( positionComponent );
-		test2.SetComponentsUpdate( true );
+	// Experiment
+	var path = new Path({x:0,y:0},{x:600,y:600});
 
-	var test3 = new createjs.Shape();
-		test3.x = -60;
-		test3.graphics.beginFill("Green").rect(-30, -25, 60,50);
-		test3.AddComponent( lookAtComponent );
-		test3.SetComponentsUpdate( true );
-		
-		lookAtComponent.target = test2;
-		//test2.on("tick", update);
-
-	// Extension
-  	var extend_test = new ExtendedContainer();
-		extend_test.output();
-
-	container.addChild(test1,test2,test3);
-	container.AddComponent( rotateComponent );
-	container.SetComponentsUpdate( true );
+	container.path = path;
+	container.addChild( path );
+	container.on("tick", update ).bind(this);
 }
 
 function keyPressed( event )
@@ -60,5 +25,59 @@ function keyPressed( event )
 
 function update( event )
 {
-	console.log("update");
+	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
+	container.path.end = m;
 }
+
+(function() {
+    function Ball( size = 10, color = "#FF0000")
+    {
+    	this.Container_constructor();
+	
+		var shape = new createjs.Shape();
+			shape.this.shape.graphics.f( color ).dc(0,0,size).ef();
+		
+		this.addChild( this.shape );
+    }
+
+    var p = createjs.extend( Ball, createjs.Container );
+    window.Ball = createjs.promote( Ball, "Container" );
+} () );
+
+(function() {
+    function Path( start = new createjs.Point(), end = new createjs.Point())
+    {
+    	this.Container_constructor();
+		
+		this.start = start;
+		this.end = end;
+
+		this.shape = new createjs.Shape();
+		
+		this.addChild( this.shape );
+
+		this.on("added", this.added );
+		this.on("removed", this.removed );
+    }
+
+    var p = createjs.extend( Path, createjs.Container );
+		p.added = function( event )
+		{
+			this.on("tick", this.update );
+			this.off("added", this.added );
+
+		}
+		p.removed = function( event )
+		{
+			this.off("removed", this.removed );
+			this.off("tick", this.update );
+		}
+		p.update = function( event )
+		{
+			var c = "#00FFFF";
+			var s = 2;
+			this.shape.graphics.c().s(c).ss(s).mt(this.start.x,this.start.y).lt(this.end.x,this.end.y).es();			
+		}
+
+    window.Path = createjs.promote( Path, "Container" );
+} () );
