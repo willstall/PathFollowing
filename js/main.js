@@ -7,21 +7,11 @@ function main()
 	document.onkeydown = keyPressed;
 	
 	// Experiment
-	var step = 50;
-	var amount = 30;
-	var origin = step * amount * -.5;
-	var path = new Path(10);
+
+	var path = new Path(30);
 		path.alpha = .15;
 
-	for(var i = 0; i < amount; i ++)
-	{
-		var x = origin + i * step;//* 2 + (i * Math.random() * step);
-		var y = createjs.Math.randomRange(-step*2,step*2);
-		var p = path.addPoint(x,y);
-
-		if(i == 11)
-			var last = p;
-	}
+	createRandomPath( path );
 
 	var ball = new Ball(30,"#00FFFF");
 		ball.x = stage.width * -.25;
@@ -42,14 +32,37 @@ function keyPressed( event )
 	}
 }
 
+function createRandomPath( path )
+{
+	var step = 100;
+	var amount = 20;
+	var origin = step * amount * -.5;
+
+	path.clearPoints();
+
+	for(var i = 0; i < amount; i ++)
+	{
+		var x = origin + i * step;//* 2 + (i * Math.random() * step);
+		var y = createjs.Math.randomRange(-step*2,step*2);
+		var p = path.addPoint(x,y);
+
+		if(i == 11)
+			var last = p;
+	}
+}
+
 function mousedown( event )
 {
 	// var m = container.globalToLocal( stage.mouseX, stage.mouseY );
 	// 	m.normalize(1);
 	// 	m = m.scale(2);
-
 	// container.ball.applyForce(m);
-	container.ball.x = container.ball.y = 0;
+
+	// Reset Ball
+	container.ball.x = stage.width * -.25;
+	container.ball.y = 0;
+	// Create New Path
+	createRandomPath( container.path );
 }
 
 function update( event )
@@ -58,7 +71,14 @@ function update( event )
 	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
 	// container.path.end = m;
 	// seek
-	// container.ball.seek( m );
+	
+	// give our dude some force
+	var f = container.ball.getPosition();
+		f.normalize(1);
+		f = f.scale( .1 );
+
+	container.ball.applyForce( f );
+	// seek to path
 	container.ball.seekToPath( container.path );
 	// update ball
 	container.ball.update();
@@ -70,15 +90,16 @@ function update( event )
     	this.Container_constructor();
 	
 		var shape = new createjs.Shape();
-			shape.graphics.f( color ).dr(size *-.5,size*-.25,size,size*.5).ef();
+			shape.graphics.f( color ).dr(size * -.5, size * -.25, size, size * .5).ef();
 		
 		this.velocity = new createjs.Point(0,0);
 		this.acceleration = new createjs.Point();
 
 		this.friction = 0;//.01;
-		this.mass = .1;
-		this.lookAhead = 10;
-		this.maxSpeed = 2;
+		this.mass = 1;
+		this.lookAhead = 35;
+		this.maxSpeed = 3;
+		this.maxSteerForce = .5;
 
 		this.addChild( shape );
     }
@@ -120,9 +141,10 @@ function update( event )
 				{					
 					var direction = b.subtract( a );
 						direction.normalize(1);
-						direction = direction.scale(this.lookAhead * .5 );
+						direction = direction.scale(this.lookAhead * .3);
 
 					target = normalPoint.add( direction );
+					
 					recordDistance = distance;
 					// console.log("new distance");
 				}
@@ -130,7 +152,7 @@ function update( event )
 			
 			if(recordDistance > path.radius)
 			{
-				console.log("hi");
+				console.log("seek target");
 				this.seek( target );
 			}
 			// var normalPoint = this.getNormalPoint( predictPosition, path.start, path.end );
@@ -158,16 +180,23 @@ function update( event )
 			this.x += this.velocity.x;
 			this.y += this.velocity.y;
 			// rotate
-			this.rotation = createjs.Math.lerp(this.rotation,this.velocity.heading(), .1 );
+			this.rotation = createjs.Math.lerp(this.rotation,this.velocity.heading(), .3 );
+			// screen wrap
+			if( this.x > this.stage.width * .51)
+				this.x = this.stage.width * -.5;
+			else if( this.x < this.stage.width * -.51)
+				this.x = this.stage.width * .5;
 		}
 		p.seek = function( position )
 		{
+			// very clearly need a better seeking algorithm
 			var desired = position.subtract( this.getPosition() );
 				desired.normalize( 1 );
 				desired = desired.scale( this.maxSpeed );
 			
 			var steer = desired.subtract( this.velocity );
-			
+				steer.normalize(this.maxSteerForce);
+
 			this.applyForce( steer );
 		}
 		p.applyForce = function( force )
@@ -221,7 +250,7 @@ function update( event )
 			//this.shape.graphics.c().s(c).ss(this.radius).mt(this.start.x,this.start.y).lt(this.end.x,this.end.y).es();		
 			
 			var g = this.shape.graphics;
-				g.c().s(c).ss(this.radius);
+				g.c().s(c).ss(this.radius*2);
 
 			if( this.points.length < 1)
 				return;
@@ -251,7 +280,7 @@ function update( event )
 			this.points = points;
 			return points;
 		}
-		p.removePoints = function()
+		p.clearPoints = function()
 		{
 			this.points = [];
 			return this.points;
