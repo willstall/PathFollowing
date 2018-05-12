@@ -8,7 +8,7 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(50);
+	var path = new Path(25);
 		path.alpha = .15;
 
 	createRandomPath( path );
@@ -84,12 +84,14 @@ function update( event )
 		this.velocity = new createjs.Point(0,0);
 		this.acceleration = new createjs.Point();
 
+		var scalar = 3;
+		
 		this.friction = 0;//.01;
 		this.mass = 1;
-		this.minSpeed = 1;		
-		this.maxSpeed = 5;
-		this.lookAhead = 50;
-		this.maxSteerForce = this.maxSpeed * .35;
+		this.minSpeed = .1;		
+		this.maxSpeed = 1;
+		this.lookAhead = 13;
+		this.maxSteerForce = .33;
 
 		this.addChild( shape );
     }
@@ -140,7 +142,10 @@ function update( event )
 				}
 			}
 			
-			this.arrive( target, path.radius );
+			if(recordDistance > path.radius )
+				this.arrive( target, path.radius *.5 );
+			// else
+				// this.applyForce( this.forward(.1) );
 			// this.seek( target );		
 		}
 		p.forward = function( distance = 1 )
@@ -168,6 +173,8 @@ function update( event )
 				this.x = this.stage.width * -.5;
 			else if( this.x < this.stage.width * -.51)
 				this.x = this.stage.width * .5;
+			// limit velocity
+			this.limitVelocity( this.maxSpeed );
 		}
 		p.arrive = function( position, radius = 100 )
 		{
@@ -201,6 +208,10 @@ function update( event )
 				steer.normalize(this.maxSteerForce);
 
 			this.applyForce( steer );
+		}
+		p.limitVelocity = function( limit )
+		{
+			this.velocity.normalize( limit );
 		}
 		p.applyForce = function( force )
 		{
