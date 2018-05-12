@@ -10,16 +10,21 @@ function main()
 	var step = 50;
 	var amount = 30;
 	var origin = step * amount * -.5;
-	var path = new Path(30);
+	var path = new Path(10);
 		path.alpha = .15;
+
 	for(var i = 0; i < amount; i ++)
 	{
 		var x = origin + i * step;//* 2 + (i * Math.random() * step);
 		var y = createjs.Math.randomRange(-step*2,step*2);
-		path.addPoint(x,y);
+		var p = path.addPoint(x,y);
+
+		if(i == 11)
+			var last = p;
 	}
+
 	var ball = new Ball(30,"#00FFFF");
-		ball.x = -200;
+		ball.x = stage.width * -.5;
 
 	container.path = path;
 	container.ball = ball;
@@ -54,7 +59,7 @@ function update( event )
 	// container.path.end = m;
 	// seek
 	// container.ball.seek( m );
-	// container.ball.seekToPath( container.path );
+	container.ball.seekToPath( container.path );
 	// update ball
 	container.ball.update();
 }
@@ -72,7 +77,7 @@ function update( event )
 
 		this.friction = 0;//.01;
 		this.mass = .1;
-		this.lookAhead = 25;
+		this.lookAhead = 10;
 		this.maxSpeed = 2;
 
 		this.addChild( shape );
@@ -96,20 +101,51 @@ function update( event )
 				predict.normalize(1);
 				predict = predict.scale( this.lookAhead );
 
-			var predictPosition = this.getPosition().add( predict );
-			var normalPoint = this.getNormalPoint( predictPosition, path.start, path.end );
-			var direction = path.end.subtract( path.start );
-				direction.normalize(1);
-				direction = direction.scale(this.lookAhead * .5 );
+			var predictPosition = this.getPosition().add( predict );			
+			var recordDistance = 100000000000000;
+			var target = null;
 
-			var target = normalPoint.add( direction );
-
-			var distance = createjs.Point.distance( normalPoint, predictPosition );
-
-			if(distance > path.radius)
+			for( var i = 0; i < path.points.length-1; i++)
 			{
+				var a = path.points[i];
+				var b = path.points[i+1];
+
+				var normalPoint = this.getNormalPoint( predictPosition, a, b );
+
+				if( normalPoint.x < a.x || normalPoint.x > b.x )
+					normalPoint = b;
+
+				var distance = createjs.Point.distance( predictPosition, normalPoint );
+				if( distance < recordDistance )
+				{					
+					var direction = b.subtract( a );
+						direction.normalize(1);
+						direction = direction.scale(this.lookAhead * .5 );
+
+					target = normalPoint.add( direction );
+					recordDistance = distance;
+					// console.log("new distance");
+				}
+			}
+			
+			if(recordDistance > path.radius)
+			{
+				console.log("hi");
 				this.seek( target );
-			}			
+			}
+			// var normalPoint = this.getNormalPoint( predictPosition, path.start, path.end );
+			// var direction = path.end.subtract( path.start );
+			// 	direction.normalize(1);
+			// 	direction = direction.scale(this.lookAhead * .5 );
+
+			// var target = normalPoint.add( direction );
+
+			// var distance = createjs.Point.distance( normalPoint, predictPosition );
+
+			// if(distance > path.radius)
+			// {
+			// 	this.seek( target );
+			// }			
 		}
 		p.update = function()
 		{
@@ -206,16 +242,19 @@ function update( event )
 		{
 			var p = new createjs.Point(x,y);
 			this.points.push( p );
+			return p;
 		}
 		p.removePoint = function( p )
 		{
 			var points = this.points.filter( x => x != p); //this.points.map( x => x != p );
 			console.log(points);
 			this.points = points;
+			return points;
 		}
 		p.removePoints = function()
 		{
 			this.points = [];
+			return this.points;
 		}
 
     window.Path = createjs.promote( Path, "Container" );
