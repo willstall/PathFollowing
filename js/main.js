@@ -8,7 +8,7 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(1);
+	var path = new Path(50);
 		path.alpha = .15;
 
 	createRandomPath( path );
@@ -30,7 +30,12 @@ function keyPressed( event )
 	//Keycodes found at http://keycode.info
 	if( event.keyCode == 32 )
 	{
-		console.log("enter key hit");
+		console.log("reset");
+		// Reset Ball
+		container.ball.x = stage.width * -.25;
+		container.ball.y = 0;
+		// Create New Path
+		createRandomPath( container.path );
 	}
 }
 
@@ -45,7 +50,7 @@ function createRandomPath( path )
 	for(var i = 0; i < amount; i ++)
 	{
 		var x = origin + i * step;//* 2 + (i * Math.random() * step);
-		var y = createjs.Math.randomRange(-step*2,step*2);
+		var y = createjs.Math.randomRange(-step*1.5,step*1.5);
 		var p = path.addPoint(x,y);
 
 		if(i == 11)
@@ -55,24 +60,15 @@ function createRandomPath( path )
 
 function mousedown( event )
 {
-	// var m = container.globalToLocal( stage.mouseX, stage.mouseY );
-	// 	m.normalize(1);
-	// 	m = m.scale(2);
-	// container.ball.applyForce(m);
-
-	// Reset Ball
-	container.ball.x = stage.width * -.25;
-	container.ball.y = 0;
-	// Create New Path
-	createRandomPath( container.path );
+	// move forward
+	container.ball.applyForce( container.ball.forward(20) );
 }
 
 function update( event )
 {
-	// move forward
-		
+
 	// seek to path
-		// container.ball.seekToPath( container.path );
+		container.ball.seekToPath( container.path );
 	// update ball
 		container.ball.update();
 }
@@ -90,10 +86,10 @@ function update( event )
 
 		this.friction = 0;//.01;
 		this.mass = 1;
-		this.minSpeed = 3;		
-		this.maxSpeed = 7;
-		this.lookAhead = this.maxSpeed*3;
-		this.maxSteerForce = this.minSpeed * .35;
+		this.minSpeed = 1;		
+		this.maxSpeed = 5;
+		this.lookAhead = 50;
+		this.maxSteerForce = this.maxSpeed * .35;
 
 		this.addChild( shape );
     }
@@ -144,26 +140,8 @@ function update( event )
 				}
 			}
 			
-			this.arrive( target );
-
-			// if(recordDistance > path.radius)
-			// {
-			// 	console.log("seek target");
-			// 	this.seek( target );
-			// }
-			// var normalPoint = this.getNormalPoint( predictPosition, path.start, path.end );
-			// var direction = path.end.subtract( path.start );
-			// 	direction.normalize(1);
-			// 	direction = direction.scale(this.lookAhead * .5 );
-
-			// var target = normalPoint.add( direction );
-
-			// var distance = createjs.Point.distance( normalPoint, predictPosition );
-
-			// if(distance > path.radius)
-			// {
-			// 	this.seek( target );
-			// }			
+			this.arrive( target, path.radius );
+			// this.seek( target );		
 		}
 		p.forward = function( distance = 1 )
 		{	
@@ -191,14 +169,14 @@ function update( event )
 			else if( this.x < this.stage.width * -.51)
 				this.x = this.stage.width * .5;
 		}
-		p.arrive = function( position )
+		p.arrive = function( position, radius = 100 )
 		{
 			var desired = position.subtract( this.getPosition() );
 			var d = desired.length();
 			
 			desired.normalize(1);	
 
-			var approachRadius = 100;
+			var approachRadius = radius;
 			if(d < approachRadius)
 			{
 				var speed = createjs.Math.mapRange(d,0,approachRadius,this.minSpeed,this.maxSpeed);
