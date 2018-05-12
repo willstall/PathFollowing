@@ -38,15 +38,20 @@ function keyPressed( event )
 		createRandomPath( container.path );
 	}
 
+	var rChange = .9;
+
 	if(event.keyCode == 187)		// +
 	{
-		container.path.radius++;
+		container.path.radius/= rChange;
 	}
 
 	if( event.keyCode == 189)
 	{
-		if(container.path.radius > 1)
-			container.path.radius--;
+		container.path.radius*=rChange;
+
+		if(container.path.radius < 1)
+			container.path.radius = 1;
+
 	}
 }
 
