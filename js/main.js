@@ -8,13 +8,14 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(30);
+	var path = new Path(50);
 		path.alpha = .15;
 
 	createRandomPath( path );
 
 	var ball = new Ball(30,"#00FFFF");
 		ball.x = stage.width * -.25;
+		//ball.applyForce( new createjs.Point(1,0) );
 
 	container.path = path;
 	container.ball = ball;
@@ -67,21 +68,10 @@ function mousedown( event )
 
 function update( event )
 {
-	// redraw path to mouse
-	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
-	// container.path.end = m;
-	// seek
-	
-	// give our dude some force
-	var f = container.ball.getPosition();
-		f.normalize(1);
-		f = f.scale( .1 );
-
-	container.ball.applyForce( f );
 	// seek to path
-	container.ball.seekToPath( container.path );
+		container.ball.seekToPath( container.path );
 	// update ball
-	container.ball.update();
+		container.ball.update();
 }
 
 (function() {
@@ -97,9 +87,10 @@ function update( event )
 
 		this.friction = 0;//.01;
 		this.mass = 1;
-		this.lookAhead = 35;
-		this.maxSpeed = 3;
-		this.maxSteerForce = .5;
+		this.minSpeed = 1;		
+		this.maxSpeed = 7;
+		this.lookAhead = this.maxSpeed * 5;
+		this.maxSteerForce = this.maxSpeed * .35;
 
 		this.addChild( shape );
     }
@@ -141,7 +132,7 @@ function update( event )
 				{					
 					var direction = b.subtract( a );
 						direction.normalize(1);
-						direction = direction.scale(this.lookAhead * .3);
+						// direction = direction.scale(this.lookAhead * .1);	// used for scaling the direction a little...their example had like a .65
 
 					target = normalPoint.add( direction );
 					
@@ -150,11 +141,13 @@ function update( event )
 				}
 			}
 			
-			if(recordDistance > path.radius)
-			{
-				console.log("seek target");
-				this.seek( target );
-			}
+			this.arrive( target );
+
+			// if(recordDistance > path.radius)
+			// {
+			// 	console.log("seek target");
+			// 	this.seek( target );
+			// }
 			// var normalPoint = this.getNormalPoint( predictPosition, path.start, path.end );
 			// var direction = path.end.subtract( path.start );
 			// 	direction.normalize(1);
@@ -180,12 +173,33 @@ function update( event )
 			this.x += this.velocity.x;
 			this.y += this.velocity.y;
 			// rotate
-			this.rotation = createjs.Math.lerp(this.rotation,this.velocity.heading(), .3 );
+			this.rotation = createjs.Math.lerp(this.rotation,this.velocity.heading(), .2);
 			// screen wrap
 			if( this.x > this.stage.width * .51)
 				this.x = this.stage.width * -.5;
 			else if( this.x < this.stage.width * -.51)
 				this.x = this.stage.width * .5;
+		}
+		p.arrive = function( position )
+		{
+			var desired = position.subtract( this.getPosition() );
+			var d = desired.length();
+			
+			desired.normalize(1);	
+
+			var approachRadius = 100;
+			if(d < approachRadius)
+			{
+				var speed = createjs.Math.mapRange(d,0,approachRadius,this.minSpeed,this.maxSpeed);
+				desired = desired.scale( speed );
+			}else{
+				desired = desired.scale( this.maxSpeed );
+			}
+			
+			var steer = desired.subtract( this.velocity );
+				steer.normalize(this.maxSteerForce);
+
+			this.applyForce( steer );			
 		}
 		p.seek = function( position )
 		{

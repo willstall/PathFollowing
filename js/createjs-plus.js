@@ -216,3 +216,7 @@ createjs.Math.randomRange = function(min, max)
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+createjs.Math.mapRange = function(value, low1, high1, low2, high2)
+{
+    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+}
