@@ -24,7 +24,7 @@ function main()
 	}
 
 	var ball = new Ball(30,"#00FFFF");
-		ball.x = stage.width * -.5;
+		ball.x = stage.width * -.25;
 
 	container.path = path;
 	container.ball = ball;
