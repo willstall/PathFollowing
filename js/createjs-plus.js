@@ -220,3 +220,11 @@ createjs.Math.mapRange = function(value, low1, high1, low2, high2)
 {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
+createjs.Math.radiansToDegrees = function( radians )
+{
+	return radians * 180 / Math.PI;
+}
+createjs.Math.degreesToRadians = function( degrees )
+{
+	return degrees * Math.PI / 180;
+}

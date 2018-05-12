@@ -8,14 +8,15 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(50);
+	var path = new Path(1);
 		path.alpha = .15;
 
 	createRandomPath( path );
 
 	var ball = new Ball(30,"#00FFFF");
 		ball.x = stage.width * -.25;
-		//ball.applyForce( new createjs.Point(1,0) );
+		ball.rotation = 45;
+		ball.applyForce( ball.forward() );
 
 	container.path = path;
 	container.ball = ball;
@@ -68,8 +69,10 @@ function mousedown( event )
 
 function update( event )
 {
+	// move forward
+		
 	// seek to path
-		container.ball.seekToPath( container.path );
+		// container.ball.seekToPath( container.path );
 	// update ball
 		container.ball.update();
 }
@@ -87,10 +90,10 @@ function update( event )
 
 		this.friction = 0;//.01;
 		this.mass = 1;
-		this.minSpeed = 1;		
+		this.minSpeed = 3;		
 		this.maxSpeed = 7;
-		this.lookAhead = this.maxSpeed * 5;
-		this.maxSteerForce = this.maxSpeed * .35;
+		this.lookAhead = this.maxSpeed*3;
+		this.maxSteerForce = this.minSpeed * .35;
 
 		this.addChild( shape );
     }
@@ -161,6 +164,14 @@ function update( event )
 			// {
 			// 	this.seek( target );
 			// }			
+		}
+		p.forward = function( distance = 1 )
+		{	
+			var r = createjs.Math.degreesToRadians( this.rotation);
+			var x = Math.cos( r ) * distance;
+			var y = Math.sin( r ) * distance;
+			var v = new createjs.Point(x,y);
+			return v;
 		}
 		p.update = function()
 		{
