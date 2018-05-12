@@ -7,11 +7,18 @@ function main()
 	document.onkeydown = keyPressed;
 	
 	// Experiment
-	var path = new Path(
-		new createjs.Point(0.0),
-		new createjs.Point(600,600)
-	);
-	var ball = new Ball();
+	var step = 50;
+	var amount = 30;
+	var origin = step * amount * -.5;
+	var path = new Path(30);
+		path.alpha = .15;
+	for(var i = 0; i < amount; i ++)
+	{
+		var x = origin + i * step;//* 2 + (i * Math.random() * step);
+		var y = createjs.Math.randomRange(-step*2,step*2);
+		path.addPoint(x,y);
+	}
+	var ball = new Ball(30,"#00FFFF");
 		ball.x = -200;
 
 	container.path = path;
@@ -44,10 +51,10 @@ function update( event )
 {
 	// redraw path to mouse
 	var m = container.globalToLocal( stage.mouseX, stage.mouseY );
-	container.path.end = m;
+	// container.path.end = m;
 	// seek
 	// container.ball.seek( m );
-	container.ball.seekToPath( container.path );
+	// container.ball.seekToPath( container.path );
 	// update ball
 	container.ball.update();
 }
@@ -144,16 +151,15 @@ function update( event )
 } () );
 
 (function() {
-    function Path( start = new createjs.Point(), end = new createjs.Point(), radius = 5)
+    function Path( radius = 5)
     {
     	this.Container_constructor();
-		
-		this.start = start;
-		this.end = end;
+
 		this.radius = radius;
 
 		this.shape = new createjs.Shape();
-		
+		this.points = [];
+
 		this.addChild( this.shape );
 
 		this.on("added", this.added );
@@ -176,7 +182,40 @@ function update( event )
 		{
 			var c = "#00FFFF";
 
-			this.shape.graphics.c().s(c).ss(this.radius).mt(this.start.x,this.start.y).lt(this.end.x,this.end.y).es();			
+			//this.shape.graphics.c().s(c).ss(this.radius).mt(this.start.x,this.start.y).lt(this.end.x,this.end.y).es();		
+			
+			var g = this.shape.graphics;
+				g.c().s(c).ss(this.radius);
+
+			if( this.points.length < 1)
+				return;
+
+			g.mt(this.points[0])
+
+			// console.log( this.points.length);
+			for(var i = 1; i < this.points.length; i++)
+			{
+				var p = this.points[i];
+				g.lt(p.x,p.y);
+			}
+			g.es();
+
+			this.shape.graphics = g;
+		}
+		p.addPoint = function( x, y )
+		{
+			var p = new createjs.Point(x,y);
+			this.points.push( p );
+		}
+		p.removePoint = function( p )
+		{
+			var points = this.points.filter( x => x != p); //this.points.map( x => x != p );
+			console.log(points);
+			this.points = points;
+		}
+		p.removePoints = function()
+		{
+			this.points = [];
 		}
 
     window.Path = createjs.promote( Path, "Container" );
