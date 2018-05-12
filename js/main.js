@@ -8,7 +8,7 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(40);
+	var path = new Path(70);
 		path.alpha = .15;
 
 	createRandomPath( path );
@@ -36,6 +36,17 @@ function keyPressed( event )
 		container.ball.y = 0;
 		// Create New Path
 		createRandomPath( container.path );
+	}
+
+	if(event.keyCode == 187)		// +
+	{
+		container.path.radius++;
+	}
+
+	if( event.keyCode == 189)
+	{
+		if(container.path.radius > 1)
+			container.path.radius--;
 	}
 }
 
