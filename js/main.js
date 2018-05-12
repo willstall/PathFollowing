@@ -1,3 +1,5 @@
+var balls = new Array();
+
 function main()
 {
 	// Setup
@@ -8,23 +10,42 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(70);
+	var path = new Path(4);
 		path.alpha = .15;
 
+	createBalls();
 	createRandomPath( path );
-
-	var ball = new Ball(30,"#00FFFF");
-		ball.x = stage.width * -.25;
-		ball.rotation = 45;
-		ball.applyForce( ball.forward() );
-
+	
 	container.path = path;
-	container.ball = ball;
-	container.addChild( path, ball );
+	container.addChild( path );
 	container.on("tick", update ).bind(this);
 	stage.on("stagemousedown", mousedown).bind(this);
 }
 
+function createBalls()
+{
+	var count = 20;
+	var spread = 250;
+	
+	for(var i = 0; i < 20; i ++ )
+	{
+		var x = createjs.Math.randomRange(-spread,spread);
+		var y = createjs.Math.randomRange(-spread,spread);
+		var ball = new Ball(30,"#00FFFF");
+			ball.x = stage.width * -.25 +x;
+			ball.y = y;
+			ball.applyForce( ball.forward() );
+
+			ball.minSpeed = Math.random() * 3;		
+			ball.maxSpeed = 3 + Math.random() * 3;
+			ball.lookAhead = ball.maxSpeed * Math.random();
+			ball.maxSteerForce = ball.maxSpeed * ball.minSpeed * .4
+
+		container.addChild( ball );
+		balls.push( ball );
+	}
+	
+}
 function keyPressed( event )
 {
 	//Keycodes found at http://keycode.info
@@ -32,8 +53,8 @@ function keyPressed( event )
 	{
 		console.log("reset");
 		// Reset Ball
-		container.ball.x = stage.width * -.25;
-		container.ball.y = 0;
+		// container.ball.x = stage.width * -.25;
+		// container.ball.y = 0;
 		// Create New Path
 		createRandomPath( container.path );
 	}
@@ -57,8 +78,8 @@ function keyPressed( event )
 
 function createRandomPath( path )
 {
-	var step = 100;
-	var amount = 20;
+	var step = 70;
+	var amount = 30;
 	var origin = step * amount * -.5;
 
 	path.clearPoints();
@@ -77,16 +98,19 @@ function createRandomPath( path )
 function mousedown( event )
 {
 	// move forward
-	container.ball.applyForce( container.ball.forward(20) );
+	// container.ball.applyForce( container.ball.forward(20) );
 }
 
 function update( event )
 {
-
-	// seek to path
-		container.ball.seekToPath( container.path );
-	// update ball
-		container.ball.update();
+	for(var i = 0; i < balls.length; i ++ )
+	{
+		var ball = balls[i];
+		// seek to path
+		ball.seekToPath( container.path );
+		// update ball
+		ball.update();
+	}
 }
 
 (function() {
