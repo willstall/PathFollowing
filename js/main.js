@@ -8,7 +8,7 @@ function main()
 	
 	// Experiment
 
-	var path = new Path(25);
+	var path = new Path(40);
 		path.alpha = .15;
 
 	createRandomPath( path );
@@ -88,10 +88,10 @@ function update( event )
 		
 		this.friction = 0;//.01;
 		this.mass = 1;
-		this.minSpeed = .1;		
-		this.maxSpeed = 1;
-		this.lookAhead = 13;
-		this.maxSteerForce = .33;
+		this.minSpeed = 1;		
+		this.maxSpeed = 3;
+		this.lookAhead = this.maxSpeed * 3;
+		this.maxSteerForce = this.maxSpeed * this.minSpeed * .4
 
 		this.addChild( shape );
     }
@@ -144,8 +144,8 @@ function update( event )
 			
 			if(recordDistance > path.radius )
 				this.arrive( target, path.radius *.5 );
-			// else
-				// this.applyForce( this.forward(.1) );
+			else
+				this.applyForce( this.forward(this.minSpeed) );
 			// this.seek( target );		
 		}
 		p.forward = function( distance = 1 )
@@ -264,7 +264,7 @@ function update( event )
 			//this.shape.graphics.c().s(c).ss(this.radius).mt(this.start.x,this.start.y).lt(this.end.x,this.end.y).es();		
 			
 			var g = this.shape.graphics;
-				g.c().s(c).ss(this.radius*2);
+				g.c().s(c).ss(this.radius*2,"round","round");
 
 			if( this.points.length < 1)
 				return;
